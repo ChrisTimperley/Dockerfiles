@@ -91,6 +91,7 @@ RUN git clone https://github.com/klee/klee-uclibc.git "${KLEE_LOCATION}/uclibc" 
 # TODO: this is a problem! We're going to end up adding two versions of LLVM to
 #       the PATH
 ENV PATH="${KLEE_LOCATION}/bin:${PATH}"
+ENV LLVM_COMPILER clang
 RUN git clone https://github.com/klee/klee.git /tmp/klee && \
     cd /tmp/klee && \
 	  ./configure prefix="${KLEE_LOCATION}" \
@@ -116,3 +117,22 @@ RUN git clone https://github.com/Z3Prover/z3.git /tmp/z3 && \
     make install PREFIX="${Z3_LOCATION}" && \
     cd / && \
     rm -rf /tmp/*
+
+# install wllvm
+RUN pip install --upgrade pip && \
+    pip install --upgrade wllvm
+
+# coreutils
+RUN wget -nv https://ftp.gnu.org/gnu/coreutils/coreutils-6.11.tar.gz && \
+    tar -xf coreutils-6.11.tar.gz && \
+    rm coreutils-6.11.tar.gz && \
+    mv coreutils-6.11 coreutils
+ENV CC wllvm
+RUN cd coreutils && \
+    mkdir obj-llvm && \
+    cd obj-llvm
+
+#CFLAGS="-g -fprofile-arcs -ftest-coverage"
+RUN cd coreutils/obj-llvm && \
+    ../configure --disable-nls && \
+    make -j$(nproc)
