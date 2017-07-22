@@ -134,5 +134,11 @@ RUN cd coreutils && \
 
 #CFLAGS="-g -fprofile-arcs -ftest-coverage"
 RUN cd coreutils/obj-llvm && \
-    ../configure --disable-nls && \
+    ../configure --disable-nls CFLAGS="-g" && \
     make -j$(nproc)
+RUN cd coreutils/obj-llvm/src && \
+    find . -executable -type f | xargs -I '{}' extract-bc '{}'
+
+# export Z3 and KLEE
+VOLUME /opt/z3
+VOLUME /opt/klee
